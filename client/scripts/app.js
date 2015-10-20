@@ -46,6 +46,7 @@ app.fetch = function() {
       //messages form server - messages is the array of message objects
       var messages = data.results;
       showMessage(messages);
+      collectRooms(messages);
 
       console.log('chatterbox: Message fetched. Data: ', data);
     },
@@ -88,15 +89,73 @@ app.addFriend = function() {
 //App showMessage method
 var showMessage = function(messages) {
   var reverseMessages = messages.reverse();
-  //iterate through array of message objects, put them in divs, and append to html
+
   _.each(reverseMessages, function(messageObject) {
-    $('#chats').append('<div/>' + messageObject.text + '</div>')
+
+    $('.chats').append('<div class = messages>' + '<a href = #>' + messageObject.username + '</a>' + ": " + messageObject.text + "; " + messageObject.createdAt + '</div>');
+  
   });
 };
 
-app.fetch();
+// var showMessage = function(messages) {
+//   var reverseMessages = messages.reverse();
+
+//   //iterate through array of message objects, put them in divs, and append to html
+//   _.each(reverseMessages, function(messageObject) {
+//     //append a message div - this will be our message container
+//     //$('#chats').append('<div class = message/>');
+//     //append username, message, and time stamp to the message div above
+//     $('.chats').append('<div class = messages>' + messageObject.username + messageObject.text + messageObject.createdAt + '</div>');
+//     //$('.chats').append('<div class = text>' + messageObject.text + '</div>');
+//     //$('.chats').append('<div class = createdAt>' + messageObject.createdAt + '</div>');
+//   });
+// };
 
 
-//QUESTIONS OUTSTANDING
-//1. How do we access the most recent messages, if the Data.results array is capped at 100?
+//Fetch New Messages
+$('button').on('click', function(){
+  app.fetch();
+});
+
+
+//Collect rooms in an array
+var collectRooms = function(messages) {
+  var reverseMessages = messages.reverse();
+  var rooms = [];
+
+  _.each(reverseMessages, function(messageObject) {
+    if (messageObject.roomname && messageObject.roomname !== null) {
+      rooms.push(messageObject.roomname);
+    }
+  });
+
+  var uniqRooms = _.uniq(rooms);
+
+  addOption(uniqRooms);
+};
+
+var addOption = function(uniqRooms) {
+    // $('#roomSelect').append('<option class = option>');
+  _.each(uniqRooms, function(room) {
+    $('#roomSelect').append($('<options />').val(room).text(room));
+  });
+};
+
+// <select id="select">
+//     <option value="AA">AA</option>
+//     <option value="B">B</option>
+//     <option value="CCC">CCC</option>
+//     <option value="DD">DD</option>
+//     <option value="E">E</option>
+// </select>
+
+//  $.getJSON("/Admin/GetFolderList/", function(result) {
+//     var options = $("#options");
+//     //don't forget error handling!
+//     $.each(result, function(item) {
+//         options.append($("<option />").val(item.ImageFolderID).text(item.Name));
+//     });
+// });
+
+
 
