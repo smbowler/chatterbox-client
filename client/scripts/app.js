@@ -9,6 +9,9 @@ app.init = function(value)   {
   return true;
 };
 
+app.username = 'Hercules';
+app.roomname = 'Lobby';
+
 //Array objectIDs
 var objectIDs = [];
 
@@ -24,13 +27,14 @@ app.send = function(message){
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Message sent. Data: ', data);
+        console.log(message);
+        userMessage(message);
       },
       error: function (data) {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to send message. Error: ', data);
     }  
   });
-  // objectIDs.push(data.objectId);
 };
 
 
@@ -65,12 +69,16 @@ app.clearMessages = function() {
 
 
 //App add messages method
-app.addMessage = function(message){
-  $('#chats').append('<div/>' + message + '</div>');
-  //Parse out and put in individual elements:
-    //username --> message.username
-    //text --> message.text
-    //roomname --> message.roomname
+app.addMessage = function(theMessage){
+  //$('#chats').append('<div/>' + message + '</div>');
+  //$send = $('#send');
+  var message = {
+    username: app.username,
+    roomname: app.room || 'lobby',
+    text: theMessage
+  };
+
+  app.send(message);
 };
 
 
@@ -91,10 +99,16 @@ var showMessage = function(messages) {
   var reverseMessages = messages.reverse();
 
   _.each(reverseMessages, function(messageObject) {
-
-    $('.chats').append('<div class = messages>' + '<a href = #>' + messageObject.username + '</a>' + ": " + messageObject.text + "; " + messageObject.createdAt + '</div>');
+    var escapedUsername = _.escape(messageObject.username)
+    var escapedText = _.escape(messageObject.text)
+    $('.chats').append('<div class = messages>' + '<a href = #>' + escapedUsername + '</a>' + ": " + escapedText + "; " + escapedUsername + '</div>');
   
   });
+};
+
+var userMessage = function(message){
+  $('.chats').prepend('<div class = messages>' + '<a href = #>' + message.username + '</a>' + ": " + message.text + "; " + message.username + '</div>');
+  console.log(message);
 };
 
 // var showMessage = function(messages) {
@@ -111,14 +125,7 @@ var showMessage = function(messages) {
 //   });
 // };
 
-
-//Fetch New Messages
-$('button').on('click', function(){
-  app.fetch();
-});
-
-
-//Collect rooms in an array
+//Collect rooms in an array, populate select element on index.html with rooms
 var collectRooms = function(messages) {
   var reverseMessages = messages.reverse();
   var rooms = [];
@@ -130,32 +137,41 @@ var collectRooms = function(messages) {
   });
 
   var uniqRooms = _.uniq(rooms);
-
   addOption(uniqRooms);
 };
 
 var addOption = function(uniqRooms) {
-    // $('#roomSelect').append('<option class = option>');
   _.each(uniqRooms, function(room) {
-    $('#roomSelect').append($('<options />').val(room).text(room));
+    var escapedRoom = _.escape(room)
+    $('#roomSelect').append('<option value = ' + escapedRoom + '>' + escapedRoom + '</option>');
   });
 };
 
-// <select id="select">
-//     <option value="AA">AA</option>
-//     <option value="B">B</option>
-//     <option value="CCC">CCC</option>
-//     <option value="DD">DD</option>
-//     <option value="E">E</option>
-// </select>
-
-//  $.getJSON("/Admin/GetFolderList/", function(result) {
-//     var options = $("#options");
-//     //don't forget error handling!
-//     $.each(result, function(item) {
-//         options.append($("<option />").val(item.ImageFolderID).text(item.Name));
-//     });
-// });
 
 
+//Event handlers below
 
+//Fetch New Messages
+$('button').on('click', function(){
+  app.fetch();
+});
+
+//Add New Messages
+$('#submit').on('click', function(event){
+  event.preventDefault();
+  //invke the addMessage function, passing it a parameter of message
+  var send = $('#send input');
+  console.log(send);
+  app.addMessage(send[0].value);
+});
+
+//Event listner for when room changes
+$('#roomSelect').on('change', function(){
+  console.log('room change')
+});
+
+// var message = {
+//         username: app.username,
+//         roomname: app.room || 'lobby',
+//         text: app.$message.val()
+//       };
